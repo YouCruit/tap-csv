@@ -2,7 +2,7 @@
 
 import os
 
-from singer_sdk.testing import get_standard_tap_tests
+from singer_sdk.testing import get_standard_tap_tests, tap_sync_test
 
 from tap_csv.tap import TapCSV
 
@@ -23,3 +23,10 @@ def test_standard_tap_tests():
     tests = get_standard_tap_tests(TapCSV, config=SAMPLE_CONFIG)
     for test in tests:
         test()
+
+    # Verify state messages are written as expected
+    (o, e) = tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+    output = o.getvalue()
+
+    assert("""{"type": "STATE", "value": {"bookmarks": {"test": {"starting_replication_value": null, "replication_key": "replication_key", "replication_key_value": "alphabet.csv:1"}}}}""" in output)
+    assert(output.endswith("""{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""))

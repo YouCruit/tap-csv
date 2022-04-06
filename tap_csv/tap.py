@@ -38,7 +38,7 @@ class TapCSV(Tap):
     @classproperty
     def capabilities(self) -> List[str]:
         """Get tap capabilites."""
-        return ["sync", "catalog", "discover"]
+        return ["state", "sync", "catalog", "discover"]
 
     def get_file_configs(self) -> List[dict]:
         """Return a list of file configs.
