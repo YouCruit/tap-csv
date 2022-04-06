@@ -2,7 +2,7 @@
 
 import csv
 import os
-from typing import Iterable, List, Optional, Any
+from typing import Any, Iterable, List, Optional
 
 from singer_sdk import typing as th
 from singer_sdk.streams import Stream
@@ -19,8 +19,23 @@ class CSVStream(Stream):
         super().__init__(*args, **kwargs)
 
     @property
-    def replication_key(self) -> Optional[str]:
+    def replication_key(self) -> str:
+        """Get replication key.
+
+        Returns:
+            Replication key for the stream.
+        """
         return "replication_key"
+
+    @replication_key.setter
+    def replication_key(self, new_value: str) -> None:
+        """Set replication key for the stream.
+
+        Args:
+            new_value: TODO]
+        """
+        # To silence warnings
+        pass
 
     def get_starting_replication_key_value(
         self, context: Optional[dict]
@@ -30,7 +45,8 @@ class CSVStream(Stream):
         Will return the value of the stream's replication key when `--state` is passed.
         If no prior state exists, will return `None`.
 
-        If config specifies a starting value, then the max of that compared to the state is returned.
+        If config specifies a starting value, then the max of that compared
+        to the state is returned.
 
         Args:
             context: Stream partition or context dictionary.
@@ -40,7 +56,7 @@ class CSVStream(Stream):
         """
         stream_state = super().get_starting_replication_key_value(context)
 
-        config_state = self.file_config.get('start_from')
+        config_state = self.file_config.get("start_from")
 
         if config_state and stream_state:
             # Return max
@@ -53,7 +69,6 @@ class CSVStream(Stream):
             return config_state
         # There is no config state
         return stream_state
-
 
     def get_records(self, context: Optional[dict]) -> Iterable[dict]:
         """Return a generator of row-type dictionary objects.
@@ -71,7 +86,7 @@ class CSVStream(Stream):
             starting_replication_file = None
             starting_replication_line = 0
 
-        # Important that iteration order of file paths remain stable for incremental to work
+        # Important that iteration order of file paths remains stable
         for file_path in self.get_file_paths():
             filename = os.path.basename(file_path).lower()
             is_starting_file = False
@@ -84,11 +99,11 @@ class CSVStream(Stream):
 
             headers: List[str] = []
             for rowindex, row in enumerate(self.get_rows(file_path)):
-                replication_value = f"{filename}:{rowindex}"
                 if not headers:
                     headers = row + [self.replication_key]
                     continue
-                # This will output the last replicated row again, but that is how other taps do it too
+                # This will output the last replicated row again
+                # but that is how other taps do it too
                 if is_starting_file and rowindex < starting_replication_line:
                     continue
 
@@ -108,16 +123,13 @@ class CSVStream(Stream):
         if not os.path.exists(file_path):
             raise Exception(f"File path does not exist {file_path}")
 
-        prefix = (self.file_config.get('prefix') or '').lower()
+        prefix = (self.file_config.get("prefix") or "").lower()
 
         file_paths = []
         if os.path.isdir(file_path):
             clean_file_path = os.path.normpath(file_path)
-            # listdir returns an arbitrary order, but we care about the order for incremental support
-            listed_files = sorted(
-                os.listdir(clean_file_path),
-                lambda f: f.lower()
-            )
+            # listdir returns an arbitrary order, sort for incremental sync
+            listed_files = sorted(os.listdir(clean_file_path), key=str.lower)
 
             for filename in listed_files:
                 if filename.lower().startswith(prefix):
@@ -137,8 +149,12 @@ class CSVStream(Stream):
 
     def get_rows(self, file_path: str) -> Iterable[list]:
         """Return a generator of the rows in a particular CSV file."""
-        with open(file_path, "r", encoding=self.file_config.get('encoding')) as f:
-            reader = csv.reader(f, delimiter=self.file_config.get('delimiter', ','), quotechar=self.file_config.get('quotechar', '"'))
+        with open(file_path, "r", encoding=self.file_config.get("encoding")) as f:
+            reader = csv.reader(
+                f,
+                delimiter=self.file_config.get("delimiter", ","),
+                quotechar=self.file_config.get("quotechar", '"'),
+            )
             for row in reader:
                 yield row
 
@@ -182,4 +198,7 @@ class CSVStream(Stream):
 
     @property
     def is_timestamp_replication_key(self) -> bool:
+        """
+        Replication key is not a timestamp
+        """
         return False

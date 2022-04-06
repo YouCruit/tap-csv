@@ -24,6 +24,7 @@ def test_standard_tap_tests():
     for test in tests:
         test()
 
+
 def test_incremental():
     """Tests incremental state handling"""
     test_data_dir = os.path.dirname(os.path.abspath(__file__))
@@ -42,8 +43,14 @@ def test_incremental():
     output = o.getvalue()
     print(output)
 
-    assert("""{"type": "STATE", "value": {"bookmarks": {"test": {"starting_replication_value": null, "replication_key": "replication_key", "replication_key_value": "alphabet.csv:1"}}}}""" in output)
-    assert(output.endswith("""{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""))
+    assert (
+        """{"type": "STATE", "value": {"bookmarks": {"test": {"starting_replication_value": null, "replication_key": "replication_key", "replication_key_value": "alphabet.csv:1"}}}}"""  # NOQA
+        in output
+    )
+    assert output.endswith(
+        """{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""  # NOQA
+    )
+
 
 def test_incremental_state_in_config():
     """Tests incremental state handling"""
@@ -64,6 +71,8 @@ def test_incremental_state_in_config():
     output = o.getvalue()
     print(output)
 
-    assert("alphabet.csv:1" not in output)
-    assert("alphabet.csv:2" in output)
-    assert(output.endswith("""{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""))
+    assert "alphabet.csv:1" not in output
+    assert "alphabet.csv:2" in output
+    assert output.endswith(
+        """{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""  # NOQA
+    )
