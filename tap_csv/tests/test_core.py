@@ -24,9 +24,46 @@ def test_standard_tap_tests():
     for test in tests:
         test()
 
+def test_incremental():
+    """Tests incremental state handling"""
+    test_data_dir = os.path.dirname(os.path.abspath(__file__))
+    SAMPLE_CONFIG = {
+        "files": [
+            {
+                "entity": "test",
+                "path": f"{test_data_dir}/data/alphabet.csv",
+                "keys": [],
+            }
+        ]
+    }
+
     # Verify state messages are written as expected
     (o, e) = tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
     output = o.getvalue()
+    print(output)
 
     assert("""{"type": "STATE", "value": {"bookmarks": {"test": {"starting_replication_value": null, "replication_key": "replication_key", "replication_key_value": "alphabet.csv:1"}}}}""" in output)
+    assert(output.endswith("""{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""))
+
+def test_incremental_state_in_config():
+    """Tests incremental state handling"""
+    test_data_dir = os.path.dirname(os.path.abspath(__file__))
+    SAMPLE_CONFIG = {
+        "files": [
+            {
+                "entity": "test",
+                "path": f"{test_data_dir}/data/alphabet.csv",
+                "start_from": "alphabet.csv:2",
+                "keys": [],
+            }
+        ]
+    }
+
+    # Verify state messages are written as expected
+    (o, e) = tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+    output = o.getvalue()
+    print(output)
+
+    assert("alphabet.csv:1" not in output)
+    assert("alphabet.csv:2" in output)
     assert(output.endswith("""{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""))

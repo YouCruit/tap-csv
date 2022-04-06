@@ -2,7 +2,7 @@
 
 import csv
 import os
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Any
 
 from singer_sdk import typing as th
 from singer_sdk.streams import Stream
@@ -21,6 +21,39 @@ class CSVStream(Stream):
     @property
     def replication_key(self) -> Optional[str]:
         return "replication_key"
+
+    def get_starting_replication_key_value(
+        self, context: Optional[dict]
+    ) -> Optional[Any]:
+        """Get starting replication key.
+
+        Will return the value of the stream's replication key when `--state` is passed.
+        If no prior state exists, will return `None`.
+
+        If config specifies a starting value, then the max of that compared to the state is returned.
+
+        Args:
+            context: Stream partition or context dictionary.
+
+        Returns:
+            Starting replication value.
+        """
+        stream_state = super().get_starting_replication_key_value(context)
+
+        config_state = self.file_config.get('start_from')
+
+        if config_state and stream_state:
+            # Return max
+            if config_state > stream_state:
+                return config_state
+            else:
+                return stream_state
+        if config_state:
+            # There is no stream_state
+            return config_state
+        # There is no config state
+        return stream_state
+
 
     def get_records(self, context: Optional[dict]) -> Iterable[dict]:
         """Return a generator of row-type dictionary objects.
@@ -55,6 +88,7 @@ class CSVStream(Stream):
                 if not headers:
                     headers = row + [self.replication_key]
                     continue
+                # This will output the last replicated row again, but that is how other taps do it too
                 if is_starting_file and rowindex < starting_replication_line:
                     continue
 

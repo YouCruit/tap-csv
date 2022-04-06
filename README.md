@@ -35,11 +35,11 @@ Example:
 	"files":	[
 					{	"entity" : "leads",
 						"path" : "/path/to/leads/",
-						"pattern": ".*\\.csv",
+						"prefix": ".*\\.csv",
 						"delimiter": ",",
 						"encoding": "utf-8",
 						"keys" : ["Id"],
-						"incremental": "timestamp"
+						"start_from": "lead_contracts.csv:8"
 					},
 					{	"entity" : "opportunities",
 						"path" : "/path/to/opportunities.csv",
