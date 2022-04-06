@@ -21,12 +21,15 @@ Built with the [Meltano SDK](https://sdk.meltano.com) for Singer Taps and Target
 
 A full list of supported settings and capabilities is available by running: `tap-csv --about`
 
-TODO update
-
 The `config.json` contains an array called `files` that consists of dictionary objects detailing each destination table to be passed to Singer. Each of those entries contains:
 * `entity`: The entity name to be passed to singer (i.e. the table)
-* `path`: Local path to the file to be ingested. Note that this may be a directory, in which case all files in that directory and any of its subdirectories will be recursively processed
+* `path`: Local path to the file to be ingested. Note that this may be a directory, in which case all files in that directory be processed if they also match the `prefix`.
+* `prefix`: The required (case-insensitive) prefix of the filename for it to be processed.
 * `keys`: The names of the columns that constitute the unique keys for that entity
+* `start_from`: The replication key to start from. The format is `filename:rownumber` in lowercase.
+* `delimiter`: What separator is used in the CSV files.
+* `encoding`: What encoding is used in the CSV files.
+* `quotechar`: What character is used for quoting in the CSV files.
 
 Example:
 
@@ -38,6 +41,7 @@ Example:
 						"prefix": ".*\\.csv",
 						"delimiter": ",",
 						"encoding": "utf-8",
+						"quotechar": "\"",
 						"keys" : ["Id"],
 						"start_from": "lead_contracts.csv:8"
 					},
