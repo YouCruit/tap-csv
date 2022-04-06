@@ -35,21 +35,27 @@ Example:
 
 ```json
 {
-	"files":	[
-					{	"entity" : "leads",
-						"path" : "/path/to/leads/",
-						"prefix": ".*\\.csv",
-						"delimiter": ",",
-						"encoding": "utf-8",
-						"quotechar": "\"",
-						"keys" : ["Id"],
-						"start_from": "lead_contracts.csv:8"
-					},
-					{	"entity" : "opportunities",
-						"path" : "/path/to/opportunities.csv",
-						"keys" : ["Id"]
-					}
-				]
+  "files": [
+    {
+      "entity": "leads",
+      "path": "/path/to/leads/",
+      "prefix": ".*\\.csv",
+      "delimiter": ",",
+      "encoding": "utf-8",
+      "quotechar": "\"",
+      "keys": [
+        "Id"
+      ],
+      "start_from": "lead_contracts.csv:8"
+    },
+    {
+      "entity": "opportunities",
+      "path": "/path/to/opportunities.csv",
+      "keys": [
+        "Id"
+      ]
+    }
+  ]
 }
 ```
 
@@ -67,14 +73,20 @@ TODO update
 **files_def.json**
 ```json
 [
-	{	"entity" : "leads",
-		"path" : "/path/to/leads.csv",
-		"keys" : ["Id"]
-	},
-	{	"entity" : "opportunities",
-		"path" : "/path/to/opportunities.csv",
-		"keys" : ["Id"]
-	}
+  {
+    "entity": "leads",
+    "path": "/path/to/leads.csv",
+    "keys": [
+      "Id"
+    ]
+  },
+  {
+    "entity": "opportunities",
+    "path": "/path/to/opportunities.csv",
+    "keys": [
+      "Id"
+    ]
+  }
 ]
 ```
 
