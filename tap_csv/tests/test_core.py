@@ -120,3 +120,25 @@ def test_global_path():
     print(output)
 
     assert "alphabet.csv:000000012" in output
+
+def test_delimiter():
+    """Tests config of delimiter"""
+    test_data_dir = os.path.dirname(os.path.abspath(__file__))
+    SAMPLE_CONFIG = {
+        "path": f"{test_data_dir}/data",
+        "files": [
+            {
+                "entity": "tilde",
+                "prefix": "tilde",
+                "delimiter": "~",
+                "keys": ["col1"],
+            }
+        ],
+    }
+
+    # Verify state messages are written as expected
+    (o, e) = tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+    output = o.getvalue()
+    print(output)
+
+    assert "tilde.txt:000000012" in output
