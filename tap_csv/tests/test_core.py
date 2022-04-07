@@ -2,6 +2,7 @@
 
 import os
 
+import pytest
 from singer_sdk.testing import get_standard_tap_tests, tap_sync_test
 
 from tap_csv.tap import TapCSV
@@ -121,6 +122,7 @@ def test_global_path():
 
     assert "alphabet.csv:000000012" in output
 
+
 def test_delimiter():
     """Tests config of delimiter"""
     test_data_dir = os.path.dirname(os.path.abspath(__file__))
@@ -142,3 +144,37 @@ def test_delimiter():
     print(output)
 
     assert "tilde.txt:000000012" in output
+
+
+def test_unknown_config():
+    """Tests unknown config value should throw"""
+    SAMPLE_CONFIG = {
+        "files": [
+            {
+                "entity": "tilde",
+                "prefix": "tilde",
+                "delimiter": "~",
+                "keys": ["col1"],
+                "typo": "foo",
+            }
+        ],
+    }
+
+    with pytest.raises(ValueError):
+        tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+
+    with pytest.raises(ValueError):
+        SAMPLE_CONFIG = {}
+        SAMPLE_CONFIG["foo"] = "bar"
+        SAMPLE_CONFIG["files"] = [{"entity": "foo", "keys": []}]
+        tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+
+
+def test_files_cant_be_empty():
+    """Tests files cant be empty"""
+    SAMPLE_CONFIG = {
+        "files": [],
+    }
+
+    with pytest.raises(ValueError):
+        tap_sync_test(TapCSV(config=SAMPLE_CONFIG))

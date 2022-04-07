@@ -52,6 +52,11 @@ class TapCSV(Tap):
         Either directly from the config.json or in an external file
         defined by csv_files_definition.
         """
+        for key in self.config:
+            if key not in self.config_jsonschema["properties"]:
+                self.logger.error(f"Unknown config variable: '{key}'")
+                raise ValueError(f"Unknown config variable: '{key}'")
+
         default_path = self.config.get("path")
         csv_files = self.config.get("files")
         csv_files_definition = self.config.get("csv_files_definition")
@@ -64,10 +69,19 @@ class TapCSV(Tap):
                 exit(1)
         if not csv_files:
             self.logger.error("No CSV file defintions found.")
-            exit(1)
+            raise ValueError("No CSV file defintions found.")
 
         # Iterate through and set path if needed
         for f in csv_files:
+            for key in f:
+                if (
+                    key
+                    not in self.config_jsonschema["properties"]["files"]["items"][
+                        "properties"
+                    ]
+                ):
+                    self.logger.error(f"Unknown config variable: '{key}'")
+                    raise ValueError(f"Unknown config variable: '{key}'")
             if "path" not in f:
                 if not default_path:
                     self.logger.error("No global path and no file path defined")
