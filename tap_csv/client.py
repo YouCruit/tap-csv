@@ -110,7 +110,8 @@ class CSVStream(Stream):
                 if is_starting_file and rowindex < starting_replication_line:
                     continue
 
-                yield dict(zip(headers, row + [f"{filename}:{rowindex}"]))
+                # Padding with zeroes so lexicographic sorting matches numeric
+                yield dict(zip(headers, row + [f"{filename}:{rowindex:09}"]))
 
     def get_file_paths(self) -> list:
         """Return a list of file paths to read.

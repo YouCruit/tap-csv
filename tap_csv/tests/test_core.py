@@ -44,11 +44,11 @@ def test_incremental():
     print(output)
 
     assert (
-        """{"type": "STATE", "value": {"bookmarks": {"test": {"starting_replication_value": null, "replication_key": "replication_key", "replication_key_value": "alphabet.csv:1"}}}}"""  # NOQA
+        """{"type": "STATE", "value": {"bookmarks": {"test": {"starting_replication_value": null, "replication_key": "replication_key", "replication_key_value": "alphabet.csv:000000001"}}}}"""  # NOQA
         in output
     )
     assert output.endswith(
-        """{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""  # NOQA
+        """{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:000000012"}}}}\n"""  # NOQA
     )
 
 
@@ -60,7 +60,7 @@ def test_incremental_state_in_config():
             {
                 "entity": "test",
                 "path": f"{test_data_dir}/data/alphabet.csv",
-                "start_from": "AlpHAbeT.csv:2",
+                "start_from": "AlpHAbeT.csv:000000002",
                 "keys": [],
             }
         ]
@@ -71,10 +71,10 @@ def test_incremental_state_in_config():
     output = o.getvalue()
     print(output)
 
-    assert "alphabet.csv:1" not in output
-    assert "alphabet.csv:2" in output
+    assert "alphabet.csv:000000001" not in output
+    assert "alphabet.csv:000000002" in output
     assert output.endswith(
-        """{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""  # NOQA
+        """{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:000000012"}}}}\n"""  # NOQA
     )
 
 
@@ -97,7 +97,7 @@ def test_global_path_in_config_overriden_by_specific_path():
     output = o.getvalue()
     print(output)
 
-    assert "alphabet.csv:3" in output
+    assert "alphabet.csv:000000012" in output
 
 
 def test_global_path():
@@ -119,4 +119,4 @@ def test_global_path():
     output = o.getvalue()
     print(output)
 
-    assert "alphabet.csv:3" in output
+    assert "alphabet.csv:000000012" in output
