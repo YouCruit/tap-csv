@@ -76,3 +76,47 @@ def test_incremental_state_in_config():
     assert output.endswith(
         """{"type": "STATE", "value": {"bookmarks": {"test": {"replication_key": "replication_key", "replication_key_value": "alphabet.csv:3"}}}}\n"""  # NOQA
     )
+
+
+def test_global_path_in_config_overriden_by_specific_path():
+    """Tests config of global default path"""
+    test_data_dir = os.path.dirname(os.path.abspath(__file__))
+    SAMPLE_CONFIG = {
+        "path": "/path/to/global",
+        "files": [
+            {
+                "entity": "test",
+                "path": f"{test_data_dir}/data/alphabet.csv",
+                "keys": [],
+            }
+        ],
+    }
+
+    # Verify state messages are written as expected
+    (o, e) = tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+    output = o.getvalue()
+    print(output)
+
+    assert "alphabet.csv:3" in output
+
+
+def test_global_path():
+    """Tests config of global default path"""
+    test_data_dir = os.path.dirname(os.path.abspath(__file__))
+    SAMPLE_CONFIG = {
+        "path": f"{test_data_dir}/data",
+        "files": [
+            {
+                "entity": "test",
+                "prefix": "alphabet",
+                "keys": [],
+            }
+        ],
+    }
+
+    # Verify state messages are written as expected
+    (o, e) = tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+    output = o.getvalue()
+    print(output)
+
+    assert "alphabet.csv:3" in output

@@ -31,10 +31,14 @@ The `config.json` contains an array called `files` that consists of dictionary o
 * `encoding`: What encoding is used in the CSV files.
 * `quotechar`: What character is used for quoting in the CSV files.
 
+It is also possible to define a global `path` value which will be used as a fallback in case `path` is not specified for
+the individual files object.
+
 Example:
 
 ```json
 {
+  "path": "/path/to/default/",
   "files": [
     {
       "entity": "leads",
@@ -50,7 +54,6 @@ Example:
     },
     {
       "entity": "opportunities",
-      "path": "/path/to/opportunities.csv",
       "keys": [
         "Id"
       ]
@@ -64,11 +67,10 @@ Optionally, the files definition can be provided by an external json file:
 **config.json**
 ```json
 {
+  "path": "/path/to/default/",
 	"csv_files_definition": "files_def.json"
 }
 ```
-
-TODO update
 
 **files_def.json**
 ```json
@@ -82,7 +84,7 @@ TODO update
   },
   {
     "entity": "opportunities",
-    "path": "/path/to/opportunities.csv",
+    "path": "opportunities.csv",
     "keys": [
       "Id"
     ]

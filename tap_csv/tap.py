@@ -17,12 +17,13 @@ class TapCSV(Tap):
     name = "tap-csv"
 
     config_jsonschema = th.PropertiesList(
+        th.Property("path", th.StringType, required=False),
         th.Property(
             "files",
             th.ArrayType(
                 th.ObjectType(
                     th.Property("entity", th.StringType, required=True),
-                    th.Property("path", th.StringType, required=True),
+                    th.Property("path", th.StringType, required=False),
                     th.Property("keys", th.ArrayType(th.StringType), required=True),
                     th.Property("prefix", th.StringType, required=False),
                     th.Property("delimiter", th.StringType, required=False),
@@ -51,6 +52,7 @@ class TapCSV(Tap):
         Either directly from the config.json or in an external file
         defined by csv_files_definition.
         """
+        default_path = self.config.get("path")
         csv_files = self.config.get("files")
         csv_files_definition = self.config.get("csv_files_definition")
         if csv_files_definition:
@@ -63,6 +65,14 @@ class TapCSV(Tap):
         if not csv_files:
             self.logger.error("No CSV file defintions found.")
             exit(1)
+
+        # Iterate through and set path if needed
+        for f in csv_files:
+            if "path" not in f:
+                if not default_path:
+                    self.logger.error("No global path and no file path defined")
+                    exit(1)
+                f["path"] = default_path
         return csv_files
 
     def discover_streams(self) -> List[Stream]:
