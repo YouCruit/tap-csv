@@ -43,7 +43,7 @@ Example:
     {
       "entity": "leads",
       "path": "/path/to/leads/",
-      "prefix": ".*\\.csv",
+      "prefix": "lead_con",
       "delimiter": ",",
       "encoding": "utf-8",
       "quotechar": "\"",

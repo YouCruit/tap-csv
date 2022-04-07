@@ -60,7 +60,7 @@ def test_incremental_state_in_config():
             {
                 "entity": "test",
                 "path": f"{test_data_dir}/data/alphabet.csv",
-                "start_from": "alphabet.csv:2",
+                "start_from": "AlpHAbeT.csv:2",
                 "keys": [],
             }
         ]

@@ -57,6 +57,9 @@ class CSVStream(Stream):
         stream_state = super().get_starting_replication_key_value(context)
 
         config_state = self.file_config.get("start_from")
+        if config_state:
+            # state is in lowercase
+            config_state = config_state.lower()
 
         if config_state and stream_state:
             # Return max
