@@ -66,7 +66,7 @@ class TapCSV(Tap):
                     csv_files = json.load(f)
             else:
                 self.logger.error(f"tap-csv: '{csv_files_definition}' file not found")
-                exit(1)
+                raise ValueError(f"tap-csv: '{csv_files_definition}' file not found")
         if not csv_files:
             self.logger.error("No CSV file defintions found.")
             raise ValueError("No CSV file defintions found.")
@@ -85,7 +85,7 @@ class TapCSV(Tap):
             if "path" not in f:
                 if not default_path:
                     self.logger.error("No global path and no file path defined")
-                    exit(1)
+                    raise ValueError("No global path and no file path defined")
                 f["path"] = default_path
         return csv_files
 
