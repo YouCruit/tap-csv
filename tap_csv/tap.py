@@ -67,9 +67,6 @@ class TapCSV(Tap):
             else:
                 self.logger.error(f"tap-csv: '{csv_files_definition}' file not found")
                 raise ValueError(f"tap-csv: '{csv_files_definition}' file not found")
-        if not csv_files:
-            self.logger.error("No CSV file defintions found.")
-            raise ValueError("No CSV file defintions found.")
 
         # Iterate through and set path if needed
         for f in csv_files:
