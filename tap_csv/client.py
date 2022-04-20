@@ -6,6 +6,7 @@ from typing import Any, Iterable, List, Optional
 
 from singer_sdk import typing as th
 from singer_sdk.streams import Stream
+from . import get_file_paths
 
 
 class CSVStream(Stream):
@@ -120,36 +121,13 @@ class CSVStream(Stream):
         directories and iterate files inside.
         """
         # Cache file paths so we dont have to iterate multiple times
-        if self.file_paths:
-            return self.file_paths
+        if not self.file_paths:
+            self.file_paths = get_file_paths(self.file_config)
+        # Check again
+        if not self.file_paths:
+            self.logger.warning(f"Stream '{self.name}' has no acceptable files")
 
-        file_path = self.file_config["path"]
-        if not os.path.exists(file_path):
-            raise Exception(f"File path does not exist {file_path}")
-
-        prefix = (self.file_config.get("prefix") or "").lower()
-
-        file_paths = []
-        if os.path.isdir(file_path):
-            clean_file_path = os.path.normpath(file_path)
-            # listdir returns an arbitrary order, sort for incremental sync
-            listed_files = sorted(os.listdir(clean_file_path), key=str.lower)
-
-            for filename in listed_files:
-                if filename.lower().startswith(prefix):
-                    file_path = os.path.join(clean_file_path, filename)
-                    if os.path.isfile(file_path):
-                        file_paths.append(file_path)
-        else:
-            file_paths.append(file_path)
-
-        if not file_paths:
-            raise Exception(
-                f"Stream '{self.name}' has no acceptable files. \
-                    See warning for more detail."
-            )
-        self.file_paths = file_paths
-        return file_paths
+        return self.file_paths
 
     def get_rows(self, file_path: str) -> Iterable[list]:
         """Return a generator of the rows in a particular CSV file."""

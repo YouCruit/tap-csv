@@ -8,7 +8,8 @@ from singer_sdk import Stream, Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
 from singer_sdk.helpers._classproperty import classproperty
 
-from tap_csv.client import CSVStream
+from .client import CSVStream
+from . import get_file_paths
 
 
 class TapCSV(Tap):
@@ -98,6 +99,7 @@ class TapCSV(Tap):
                 file_config=file_config,
             )
             for file_config in self.get_file_configs()
+            if get_file_paths(file_config)
         ]
 
 
