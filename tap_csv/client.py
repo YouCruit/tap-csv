@@ -160,10 +160,13 @@ class CSVStream(Stream):
         properties: List[th.Property] = []
         self.primary_keys = self.file_config.get("keys", [])
 
-        for file_path in self.get_file_paths():
-            for header in self.get_rows(file_path):
+        header: List[str] = self.file_config.get("header", [])
+
+        if not header:
+            for file_path in self.get_file_paths():
+                for header in self.get_rows(file_path):
+                    break
                 break
-            break
 
         for column in header:
             # Set all types to string
