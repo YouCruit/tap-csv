@@ -31,6 +31,7 @@ The `config.json` contains an array called `files` that consists of dictionary o
 * `dialect`: What dialect is used in the CSV files. See <https://docs.python.org/3/library/csv.html#csv.list_dialects>
 * `encoding`: What encoding is used in the CSV files.
 * `quotechar`: What character is used for quoting in the CSV files.
+* `header`: In case some or all files are missing a header, it can be specified here. Rows which match the specified header are skipped. So files with or without headers can be included in the same batch.
 
 It is also possible to define a global `path` value which will be used as a fallback in case `path` is not specified for
 the individual files object.
@@ -49,6 +50,11 @@ Example:
       "dialect": "excel",
       "encoding": "utf-8",
       "quotechar": "\"",
+      "header": [
+        "Id",
+        "Column1",
+        "Column2"
+      ],
       "keys": [
         "Id"
       ],

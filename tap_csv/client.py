@@ -101,11 +101,18 @@ class CSVStream(Stream):
             elif starting_replication_file == filename:
                 is_starting_file = True
 
-            headers: List[str] = []
+            headers: List[str] = self.file_config.get("header", [])
+            if headers:
+                headers += [self.replication_key]
+
             for rowindex, row in enumerate(self.get_rows(file_path)):
                 if not headers:
                     headers = row + [self.replication_key]
                     continue
+                if headers and rowindex == 0:
+                    if list_equals(headers[:-1], row):
+                        # Header line
+                        continue
                 # This will output the last replicated row again
                 # but that is how other taps do it too
                 if is_starting_file and rowindex < starting_replication_line:
@@ -187,3 +194,15 @@ class CSVStream(Stream):
         Replication key is not a timestamp
         """
         return False
+
+
+def list_equals(lhs: List, rhs: List):
+    """Returns True IFF all objects in lhs are equal to all objects in rhs"""
+    if len(lhs) != len(rhs):
+        return False
+
+    for l, r in zip(lhs, rhs):
+        if l != r:
+            return False
+
+    return True

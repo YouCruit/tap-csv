@@ -178,6 +178,39 @@ def test_dialect():
     assert "tab.txt:000000012" in output
 
 
+def test_header():
+    """Tests config of header"""
+    test_data_dir = os.path.dirname(os.path.abspath(__file__))
+    SAMPLE_CONFIG = {
+        "path": f"{test_data_dir}/data",
+        "files": [
+            {
+                "entity": "header",
+                "prefix": "header_",
+                "keys": ["col1"],
+                "header": ["col1", "col2", "col3"],
+            }
+        ],
+    }
+
+    # Verify state messages are written as expected
+    (o, e) = tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+    output = o.getvalue()
+    print(output)
+
+    assert '"col1": "col1"' not in output
+    assert '"j":' not in output
+    assert '"col1": "a"' in output
+    assert '"col1": "g"' in output
+    assert '"col1": "j"' in output
+    assert '"col1": "m"' in output
+    assert '"col1": "p"' in output
+    assert '"col2": "h"' in output
+    assert '"col3": "r"' in output
+    assert "header_a_yes.csv:000000003" in output
+    assert "header_z_no.csv:000000002" in output
+
+
 def test_unknown_config():
     """Tests unknown config value should throw"""
     SAMPLE_CONFIG = {
