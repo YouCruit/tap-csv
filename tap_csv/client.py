@@ -131,12 +131,15 @@ class CSVStream(Stream):
 
     def get_rows(self, file_path: str) -> Iterable[list]:
         """Return a generator of the rows in a particular CSV file."""
+        params = {}
+        if self.file_config.get("delimiter", None):
+            params["delimiter"] = self.file_config["delimiter"]
+        if self.file_config.get("quotechar", None):
+            params["quotechar"] = self.file_config["quotechar"]
+        if self.file_config.get("dialect", None):
+            params["dialect"] = self.file_config["dialect"]
         with open(file_path, "r", encoding=self.file_config.get("encoding")) as f:
-            reader = csv.reader(
-                f,
-                delimiter=self.file_config.get("delimiter", ","),
-                quotechar=self.file_config.get("quotechar", '"'),
-            )
+            reader = csv.reader(f, **params)
             for row in reader:
                 yield row
 

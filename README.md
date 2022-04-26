@@ -28,6 +28,7 @@ The `config.json` contains an array called `files` that consists of dictionary o
 * `keys`: The names of the columns that constitute the unique keys for that entity
 * `start_from`: The replication key to start from. The format is `filename:rownumber` in lowercase.
 * `delimiter`: What separator is used in the CSV files.
+* `dialect`: What dialect is used in the CSV files. See <https://docs.python.org/3/library/csv.html#csv.list_dialects>
 * `encoding`: What encoding is used in the CSV files.
 * `quotechar`: What character is used for quoting in the CSV files.
 
@@ -45,6 +46,7 @@ Example:
       "path": "/path/to/leads/",
       "prefix": "lead_con",
       "delimiter": ",",
+      "dialect": "excel",
       "encoding": "utf-8",
       "quotechar": "\"",
       "keys": [

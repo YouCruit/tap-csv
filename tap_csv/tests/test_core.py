@@ -120,6 +120,9 @@ def test_global_path():
     output = o.getvalue()
     print(output)
 
+    assert '"col1": "a"' in output
+    assert '"col2": "h"' in output
+    assert '"col3": "i"' in output
     assert "alphabet.csv:000000012" in output
 
 
@@ -143,7 +146,36 @@ def test_delimiter():
     output = o.getvalue()
     print(output)
 
+    assert '"col1": "a"' in output
+    assert '"col2": "h"' in output
+    assert '"col3": "i"' in output
     assert "tilde.txt:000000012" in output
+
+
+def test_dialect():
+    """Tests config of dialect"""
+    test_data_dir = os.path.dirname(os.path.abspath(__file__))
+    SAMPLE_CONFIG = {
+        "path": f"{test_data_dir}/data",
+        "files": [
+            {
+                "entity": "tab",
+                "prefix": "tab",
+                "dialect": "excel-tab",
+                "keys": ["col1"],
+            }
+        ],
+    }
+
+    # Verify state messages are written as expected
+    (o, e) = tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+    output = o.getvalue()
+    print(output)
+
+    assert '"col1": "a"' in output
+    assert '"col2": "h"' in output
+    assert '"col3": "i"' in output
+    assert "tab.txt:000000012" in output
 
 
 def test_unknown_config():
@@ -170,11 +202,11 @@ def test_unknown_config():
         tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
 
 
-def test_files_cant_be_empty():
+def test_files_can_be_empty():
     """Tests files cant be empty"""
     SAMPLE_CONFIG = {
         "files": [],
     }
 
-    with pytest.raises(ValueError):
-        tap_sync_test(TapCSV(config=SAMPLE_CONFIG))
+    # Should not raise
+    tap_sync_test(TapCSV(config=SAMPLE_CONFIG))

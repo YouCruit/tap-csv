@@ -28,6 +28,7 @@ class TapCSV(Tap):
                     th.Property("keys", th.ArrayType(th.StringType), required=True),
                     th.Property("prefix", th.StringType, required=False),
                     th.Property("delimiter", th.StringType, required=False),
+                    th.Property("dialect", th.StringType, required=False),
                     th.Property("encoding", th.StringType, required=False),
                     th.Property("quotechar", th.StringType, required=False),
                     th.Property("start_from", th.StringType, required=False),
