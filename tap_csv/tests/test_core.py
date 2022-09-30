@@ -210,6 +210,7 @@ def test_header():
     assert "header_a_yes.csv:000000003" in output
     assert "header_z_no.csv:000000002" in output
 
+
 def test_replication_key_as_primary_key():
     """Tests config of header"""
     test_data_dir = os.path.dirname(os.path.abspath(__file__))
@@ -241,7 +242,6 @@ def test_replication_key_as_primary_key():
     assert '"col3": "r"' in output
     assert "header_a_yes.csv:000000003" in output
     assert "header_z_no.csv:000000002" in output
-
 
 
 def test_unknown_config():

@@ -8,8 +8,8 @@ from singer_sdk import Stream, Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
 from singer_sdk.helpers._classproperty import classproperty
 
-from .client import CSVStream
 from . import get_file_paths
+from .client import CSVStream
 
 
 class TapCSV(Tap):

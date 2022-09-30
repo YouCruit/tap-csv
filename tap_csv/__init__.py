@@ -9,7 +9,7 @@ def get_file_paths(file_config: dict) -> list:
     directories and iterate files inside.
     """
     file_path = file_config["path"]
-    if not os.path.exists(file_path):     
+    if not os.path.exists(file_path):
         return []
 
     prefix = (file_config.get("prefix") or "").lower()

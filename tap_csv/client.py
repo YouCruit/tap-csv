@@ -6,6 +6,7 @@ from typing import Any, Iterable, List, Optional
 
 from singer_sdk import typing as th
 from singer_sdk.streams import Stream
+
 from . import get_file_paths
 
 
@@ -30,8 +31,7 @@ class CSVStream(Stream):
 
     @replication_key.setter
     def replication_key(self, new_value: str) -> None:
-        """Doesn't do anything. Only exists to silence warnings
-        """
+        """Doesn't do anything. Only exists to silence warnings"""
         # To silence warnings
         pass
 
@@ -97,7 +97,9 @@ class CSVStream(Stream):
                 self.logger.info(f"Skipping [{filename}] because it's already synced")
                 continue
             elif starting_replication_file == filename:
-                self.logger.info(f"Starting sync of [{filename}] from line [{starting_replication_line}]")
+                self.logger.info(
+                    f"Starting sync of [{filename}] from line [{starting_replication_line}]"
+                )
                 is_starting_file = True
 
             headers: List[str] = self.file_config.get("header", [])
