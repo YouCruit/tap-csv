@@ -1,0 +1,10 @@
+{
+  "files": [
+    {
+      "entity": "test1",
+      "keys": [ "foo" ],
+      "prefix": "foo_",
+      "path": "testit"
+    }
+  ]
+}
