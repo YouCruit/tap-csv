@@ -94,8 +94,10 @@ class CSVStream(Stream):
 
             if starting_replication_file and starting_replication_file > filename:
                 # Skip file since we've already synced it
+                self.logger.info(f"Skipping [{filename}] because it's already synced")
                 continue
             elif starting_replication_file == filename:
+                self.logger.info(f"Starting sync of [{filename}] from line [{starting_replication_line}]")
                 is_starting_file = True
 
             headers: List[str] = self.file_config.get("header", [])
@@ -114,6 +116,9 @@ class CSVStream(Stream):
                 # but that is how other taps do it too
                 if is_starting_file and rowindex < starting_replication_line:
                     continue
+
+                if rowindex % 10000 == 0:
+                    self.logger.info(f"Syncing [{filename}] line [{rowindex}]")
 
                 # Padding with zeroes so lexicographic sorting matches numeric
                 yield dict(zip(headers, row + [f"{filename}:{rowindex:09}"]))
