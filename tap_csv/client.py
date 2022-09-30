@@ -30,10 +30,7 @@ class CSVStream(Stream):
 
     @replication_key.setter
     def replication_key(self, new_value: str) -> None:
-        """Set replication key for the stream.
-
-        Args:
-            new_value: TODO]
+        """Doesn't do anything. Only exists to silence warnings
         """
         # To silence warnings
         pass
