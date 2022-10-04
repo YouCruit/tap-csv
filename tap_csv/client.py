@@ -4,7 +4,7 @@ import csv
 import gzip
 import json
 import os
-from typing import Any, Iterable, List, Optional
+from typing import IO, Any, Iterable, List, Optional
 from uuid import uuid4
 
 from singer_sdk import typing as th
@@ -131,12 +131,12 @@ class CSVStream(Stream):
                     continue
 
                 if rowindex % 100000 == 0:
-                    self.logger.info(f"Syncing [{filename}] line [{rowindex:09}]")
+                    self.logger.debug(f"Syncing [{filename}] line [{rowindex:09}]")
 
                 # Padding with zeroes so lexicographic sorting matches numeric
                 yield dict(zip(headers, row + [f"{filename}:{rowindex:09}"]))
 
-            self.logger.info(f"Synced [{filename}] line [{rowindex:09}]")
+            self.logger.info(f"Synced [{filename}] with [{rowindex:09}] lines")
 
     def get_file_paths(self) -> list:
         """Return a list of file paths to read.
@@ -189,13 +189,17 @@ class CSVStream(Stream):
 
         i = 1
         chunk_size = 0
+        filename: Optional[str] = None
+        f: Optional[IO] = None
+        gz: Optional[gzip.GzipFile] = None
 
         with batch_config.storage.fs() as fs:
-            filename = f"{prefix}{sync_id}-{i}.json.gz"
-            f = fs.open(filename, "wb")
-            gz = gzip.GzipFile(fileobj=f, mode="wb")
-
             for record in self._sync_records(context, write_messages=False):
+                if filename is None:
+                    filename = f"{prefix}{sync_id}-{i}.json.gz"
+                    f = fs.open(filename, "wb")
+                    gz = gzip.GzipFile(fileobj=f, mode="wb")
+
                 gz.write(
                     (json.dumps(record) + "\n").encode()
                 )
@@ -203,16 +207,16 @@ class CSVStream(Stream):
 
                 if chunk_size == self.batch_size:
                     gz.close()
+                    gz = None
                     f.close()
+                    f = None
                     file_url = fs.geturl(filename)
                     yield batch_config.encoding, [file_url]
 
+                    filename = None
+
                     i += 1
                     chunk_size = 0
-
-                    filename = f"{prefix}{sync_id}-{i}.json.gz"
-                    f = fs.open(filename, "wb")
-                    gz = gzip.GzipFile(fileobj=f, mode="wb")
 
             if chunk_size > 0:
                 gz.close()
