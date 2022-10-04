@@ -18,11 +18,14 @@ from singer_sdk.helpers._batch import (
 from . import get_file_paths
 
 
+MAX_BATCH_SIZE: int = 9223372036854775807
+
+
 class CSVStream(Stream):
     """Stream class for CSV streams."""
 
-    # Each file is one batch
-    #batch_size: int = 9223372036854775807
+    # Set this value to force an early batch message
+    _force_batch_message: bool = False
 
     def __init__(self, *args, **kwargs):
         """Init CSVStram."""
@@ -140,6 +143,10 @@ class CSVStream(Stream):
                 # Padding with zeroes so lexicographic sorting matches numeric
                 yield dict(zip(headers, row + [f"{filename}:{rowindex:09}"]))
 
+            # Force a batch message to be sent - mixing data from different files is bad
+            # since unique ids may become non-unique
+            self._force_batch_message = True
+
             self.logger.info(f"Synced [{filename}] with [{rowindex:09}] lines")
 
     def get_file_paths(self) -> list:
@@ -199,17 +206,9 @@ class CSVStream(Stream):
 
         with batch_config.storage.fs() as fs:
             for record in self._sync_records(context, write_messages=False):
-                if filename is None:
-                    filename = f"{prefix}{sync_id}-{i}.json.gz"
-                    f = fs.open(filename, "wb")
-                    gz = gzip.GzipFile(fileobj=f, mode="wb")
-
-                gz.write(
-                    (json.dumps(record) + "\n").encode()
-                )
-                chunk_size += 1
-
-                if chunk_size == self.batch_size:
+                # Why do this first? Because get_records can change the batch size
+                # but that won't be visible until the NEXT record
+                if self._force_batch_message or chunk_size >= self.batch_size:
                     gz.close()
                     gz = None
                     f.close()
@@ -221,6 +220,19 @@ class CSVStream(Stream):
 
                     i += 1
                     chunk_size = 0
+
+                    # Reset force flag
+                    self._force_batch_message = False
+
+                if filename is None:
+                    filename = f"{prefix}{sync_id}-{i}.json.gz"
+                    f = fs.open(filename, "wb")
+                    gz = gzip.GzipFile(fileobj=f, mode="wb")
+
+                gz.write(
+                    (json.dumps(record) + "\n").encode()
+                )
+                chunk_size += 1
 
             if chunk_size > 0:
                 gz.close()
