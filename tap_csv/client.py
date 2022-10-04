@@ -122,11 +122,13 @@ class CSVStream(Stream):
                 if is_starting_file and rowindex < starting_replication_line:
                     continue
 
-                if rowindex % 10000 == 0:
+                if rowindex % 100000 == 0:
                     self.logger.info(f"Syncing [{filename}] line [{rowindex:09}]")
 
                 # Padding with zeroes so lexicographic sorting matches numeric
                 yield dict(zip(headers, row + [f"{filename}:{rowindex:09}"]))
+
+            self.logger.info(f"Synced [{filename}] line [{rowindex:09}]")
 
     def get_file_paths(self) -> list:
         """Return a list of file paths to read.
