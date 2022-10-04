@@ -1,11 +1,19 @@
 """Custom client handling, including CSVStream base class."""
 
 import csv
+import gzip
+import json
 import os
 from typing import Any, Iterable, List, Optional
+from uuid import uuid4
 
 from singer_sdk import typing as th
 from singer_sdk.streams import Stream
+from singer_sdk.helpers._batch import (
+    BaseBatchFileEncoding,
+    BatchConfig,
+    SDKBatchMessage,
+)
 
 from . import get_file_paths
 
@@ -158,6 +166,59 @@ class CSVStream(Stream):
             reader = csv.reader(f, **params)
             for row in reader:
                 yield row
+
+    def get_batches(
+        self,
+        batch_config: BatchConfig,
+        context: Optional[dict] = None,
+    ) -> Iterable[tuple[BaseBatchFileEncoding, list[str]]]:
+        """Batch generator function.
+
+        Developers are encouraged to override this method to customize batching
+        behavior for databases, bulk APIs, etc.
+
+        Args:
+            batch_config: Batch config for this stream.
+            context: Stream partition or context dictionary.
+
+        Yields:
+            A tuple of (encoding, manifest) for each batch.
+        """
+        sync_id = f"{self.tap_name}--{self.name}-{uuid4()}"
+        prefix = batch_config.storage.prefix or ""
+
+        i = 1
+        chunk_size = 0
+
+        with batch_config.storage.fs() as fs:
+            filename = f"{prefix}{sync_id}-{i}.json.gz"
+            f = fs.open(filename, "wb")
+            gz = gzip.GzipFile(fileobj=f, mode="wb")
+
+            for record in self._sync_records(context, write_messages=False):
+                gz.write(
+                    (json.dumps(record) + "\n").encode()
+                )
+                chunk_size += 1
+
+                if chunk_size == self.batch_size:
+                    gz.close()
+                    f.close()
+                    file_url = fs.geturl(filename)
+                    yield batch_config.encoding, [file_url]
+
+                    i += 1
+                    chunk_size = 0
+
+                    filename = f"{prefix}{sync_id}-{i}.json.gz"
+                    f = fs.open(filename, "wb")
+                    gz = gzip.GzipFile(fileobj=f, mode="wb")
+
+            if chunk_size > 0:
+                gz.close()
+                f.close()
+                file_url = fs.geturl(filename)
+                yield batch_config.encoding, [file_url]
 
     @property
     def schema(self) -> dict:
