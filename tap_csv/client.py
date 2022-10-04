@@ -13,6 +13,9 @@ from . import get_file_paths
 class CSVStream(Stream):
     """Stream class for CSV streams."""
 
+    # Each file is one batch
+    batch_size: int = 9223372036854775807
+
     def __init__(self, *args, **kwargs):
         """Init CSVStram."""
         self.file_paths: List[str] = []
