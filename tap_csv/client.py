@@ -123,7 +123,7 @@ class CSVStream(Stream):
                     continue
 
                 if rowindex % 10000 == 0:
-                    self.logger.info(f"Syncing [{filename}] line [{rowindex}]")
+                    self.logger.info(f"Syncing [{filename}] line [{rowindex:09}]")
 
                 # Padding with zeroes so lexicographic sorting matches numeric
                 yield dict(zip(headers, row + [f"{filename}:{rowindex:09}"]))
