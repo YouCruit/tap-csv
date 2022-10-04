@@ -22,7 +22,7 @@ class CSVStream(Stream):
     """Stream class for CSV streams."""
 
     # Each file is one batch
-    batch_size: int = 9223372036854775807
+    #batch_size: int = 9223372036854775807
 
     def __init__(self, *args, **kwargs):
         """Init CSVStram."""
@@ -30,6 +30,10 @@ class CSVStream(Stream):
         # cache file_config so we dont need to go iterating the config list again later
         self.file_config = kwargs.pop("file_config")
         super().__init__(*args, **kwargs)
+
+    @property
+    def batch_size(self) -> int:
+        return self.config.get('batch_size', 10_000_000)
 
     @property
     def replication_key(self) -> str:

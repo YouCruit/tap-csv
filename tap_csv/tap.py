@@ -47,6 +47,7 @@ class TapCSV(Tap):
             th.StringType,
             description="A path to the JSON file holding an array of file settings.",
         ),
+        th.Property("batch_size", th.IntegerType, required=False, default=10_000_000),
         th.Property("batch_config", th.ObjectType(
             th.Property("encoding", th.ObjectType(
                 th.Property("format", th.StringType, required=True),
