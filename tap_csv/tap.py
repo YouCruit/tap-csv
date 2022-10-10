@@ -7,6 +7,11 @@ from typing import List
 from singer_sdk import Stream, Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
 from singer_sdk.helpers._classproperty import classproperty
+from singer_sdk.helpers.capabilities import (
+    CapabilitiesEnum,
+    PluginCapabilities,
+    TapCapabilities,
+)
 
 from . import get_file_paths
 from .client import CSVStream
@@ -42,12 +47,49 @@ class TapCSV(Tap):
             th.StringType,
             description="A path to the JSON file holding an array of file settings.",
         ),
+        th.Property("batch_size", th.IntegerType, required=False, default=10_000_000),
+        th.Property(
+            "batch_config",
+            th.ObjectType(
+                th.Property(
+                    "encoding",
+                    th.ObjectType(
+                        th.Property("format", th.StringType, required=True),
+                        th.Property("compression", th.StringType, required=True),
+                    ),
+                    required=True,
+                ),
+                th.Property(
+                    "storage",
+                    th.ObjectType(
+                        th.Property("root", th.StringType, required=True),
+                        th.Property(
+                            "prefix", th.StringType, required=False, default=""
+                        ),
+                    ),
+                    required=True,
+                ),
+            ),
+            required=False,
+        ),
     ).to_dict()
 
     @classproperty
-    def capabilities(self) -> List[str]:
-        """Get tap capabilites."""
-        return ["state", "sync", "catalog", "discover"]
+    def capabilities(self) -> List[CapabilitiesEnum]:
+        """Get tap capabilities.
+
+        Returns:
+            A list of capabilities supported by this tap.
+        """
+        return [
+            TapCapabilities.CATALOG,
+            TapCapabilities.STATE,
+            TapCapabilities.DISCOVER,
+            PluginCapabilities.ABOUT,
+            PluginCapabilities.STREAM_MAPS,
+            PluginCapabilities.FLATTENING,
+            PluginCapabilities.BATCH,
+        ]
 
     def get_file_configs(self) -> List[dict]:
         """Return a list of file configs.

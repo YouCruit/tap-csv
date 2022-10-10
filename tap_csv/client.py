@@ -1,17 +1,26 @@
 """Custom client handling, including CSVStream base class."""
 
 import csv
+import gzip
+import json
 import os
-from typing import Any, Iterable, List, Optional
+from typing import IO, Any, Iterable, List, Optional
+from uuid import uuid4
 
 from singer_sdk import typing as th
+from singer_sdk.helpers._batch import BaseBatchFileEncoding, BatchConfig
 from singer_sdk.streams import Stream
 
 from . import get_file_paths
 
+MAX_BATCH_SIZE: int = 9223372036854775807
+
 
 class CSVStream(Stream):
     """Stream class for CSV streams."""
+
+    # Set this value to force an early batch message
+    _force_batch_message: bool = False
 
     def __init__(self, *args, **kwargs):
         """Init CSVStram."""
@@ -19,6 +28,10 @@ class CSVStream(Stream):
         # cache file_config so we dont need to go iterating the config list again later
         self.file_config = kwargs.pop("file_config")
         super().__init__(*args, **kwargs)
+
+    @property
+    def batch_size(self) -> int:
+        return self.config.get("batch_size", 10_000_000)
 
     @property
     def replication_key(self) -> str:
@@ -119,11 +132,17 @@ class CSVStream(Stream):
                 if is_starting_file and rowindex < starting_replication_line:
                     continue
 
-                if rowindex % 10000 == 0:
-                    self.logger.info(f"Syncing [{filename}] line [{rowindex}]")
+                if rowindex % 100000 == 0:
+                    self.logger.debug(f"Syncing [{filename}] line [{rowindex:09}]")
 
                 # Padding with zeroes so lexicographic sorting matches numeric
                 yield dict(zip(headers, row + [f"{filename}:{rowindex:09}"]))
+
+            # Force a batch message to be sent - mixing data from different files is bad
+            # since unique ids may become non-unique
+            self._force_batch_message = True
+
+            self.logger.info(f"Synced [{filename}] with [{rowindex:09}] lines")
 
     def get_file_paths(self) -> list:
         """Return a list of file paths to read.
@@ -153,6 +172,66 @@ class CSVStream(Stream):
             reader = csv.reader(f, **params)
             for row in reader:
                 yield row
+
+    def get_batches(
+        self,
+        batch_config: BatchConfig,
+        context: Optional[dict] = None,
+    ) -> Iterable[tuple[BaseBatchFileEncoding, list[str]]]:
+        """Batch generator function.
+
+        Developers are encouraged to override this method to customize batching
+        behavior for databases, bulk APIs, etc.
+
+        Args:
+            batch_config: Batch config for this stream.
+            context: Stream partition or context dictionary.
+
+        Yields:
+            A tuple of (encoding, manifest) for each batch.
+        """
+        sync_id = f"{self.tap_name}--{self.name}-{uuid4()}"
+        prefix = batch_config.storage.prefix or ""
+
+        i = 1
+        chunk_size = 0
+        filename: Optional[str] = None
+        f: Optional[IO] = None
+        gz: Optional[gzip.GzipFile] = None
+
+        with batch_config.storage.fs() as fs:
+            for record in self._sync_records(context, write_messages=False):
+                # Why do this first? Because get_records can change the batch size
+                # but that won't be visible until the NEXT record
+                if self._force_batch_message or chunk_size >= self.batch_size:
+                    gz.close()
+                    gz = None
+                    f.close()
+                    f = None
+                    file_url = fs.geturl(filename)
+                    yield batch_config.encoding, [file_url]
+
+                    filename = None
+
+                    i += 1
+                    chunk_size = 0
+
+                    # Reset force flag
+                    self._force_batch_message = False
+
+                if filename is None:
+                    filename = f"{prefix}{sync_id}-{i}.json.gz"
+                    f = fs.open(filename, "wb")
+                    gz = gzip.GzipFile(fileobj=f, mode="wb")
+
+                gz.write((json.dumps(record) + "\n").encode())
+                chunk_size += 1
+
+            if chunk_size > 0:
+                gz.close()
+                f.close()
+                file_url = fs.geturl(filename)
+                yield batch_config.encoding, [file_url]
 
     @property
     def schema(self) -> dict:
