@@ -8,15 +8,10 @@ from typing import IO, Any, Iterable, List, Optional
 from uuid import uuid4
 
 from singer_sdk import typing as th
+from singer_sdk.helpers._batch import BaseBatchFileEncoding, BatchConfig
 from singer_sdk.streams import Stream
-from singer_sdk.helpers._batch import (
-    BaseBatchFileEncoding,
-    BatchConfig,
-    SDKBatchMessage,
-)
 
 from . import get_file_paths
-
 
 MAX_BATCH_SIZE: int = 9223372036854775807
 
@@ -36,7 +31,7 @@ class CSVStream(Stream):
 
     @property
     def batch_size(self) -> int:
-        return self.config.get('batch_size', 10_000_000)
+        return self.config.get("batch_size", 10_000_000)
 
     @property
     def replication_key(self) -> str:
@@ -229,9 +224,7 @@ class CSVStream(Stream):
                     f = fs.open(filename, "wb")
                     gz = gzip.GzipFile(fileobj=f, mode="wb")
 
-                gz.write(
-                    (json.dumps(record) + "\n").encode()
-                )
+                gz.write((json.dumps(record) + "\n").encode())
                 chunk_size += 1
 
             if chunk_size > 0:

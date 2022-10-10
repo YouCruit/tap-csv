@@ -48,16 +48,30 @@ class TapCSV(Tap):
             description="A path to the JSON file holding an array of file settings.",
         ),
         th.Property("batch_size", th.IntegerType, required=False, default=10_000_000),
-        th.Property("batch_config", th.ObjectType(
-            th.Property("encoding", th.ObjectType(
-                th.Property("format", th.StringType, required=True),
-                th.Property("compression", th.StringType, required=True),
-            ), required=True),
-            th.Property("storage", th.ObjectType(
-                th.Property("root", th.StringType, required=True),
-                th.Property("prefix", th.StringType, required=False, default=''),
-            ), required=True)
-        ), required=False),
+        th.Property(
+            "batch_config",
+            th.ObjectType(
+                th.Property(
+                    "encoding",
+                    th.ObjectType(
+                        th.Property("format", th.StringType, required=True),
+                        th.Property("compression", th.StringType, required=True),
+                    ),
+                    required=True,
+                ),
+                th.Property(
+                    "storage",
+                    th.ObjectType(
+                        th.Property("root", th.StringType, required=True),
+                        th.Property(
+                            "prefix", th.StringType, required=False, default=""
+                        ),
+                    ),
+                    required=True,
+                ),
+            ),
+            required=False,
+        ),
     ).to_dict()
 
     @classproperty
